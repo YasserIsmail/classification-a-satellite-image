@@ -15,6 +15,8 @@ from sklearn.metrics import confusion_matrix,ConfusionMatrixDisplay,classificati
 from sklearn.tree import DecisionTreeClassifier
 ```
 
+    
+
 # 2.Getting the data
 
 ### Raster source
@@ -34,6 +36,8 @@ ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 
 
 
+
+    <AxesSubplot:>
 
 
 
@@ -462,6 +466,13 @@ disp.plot()
 ```
 
 
+
+
+    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1ffc2b87fd0>
+
+
+
+
     
 ![png](output_29_1.png)
     
@@ -489,7 +500,11 @@ print(classification_report(y_valid,y_hat))
 test_predictions = rfm.predict(test_set)
 test_predictions
 ```
-array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
+
+
+
+
+    array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
 
 
 
@@ -498,7 +513,11 @@ array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
 test_predictions = test_predictions.astype('float64')
 test_predictions
 ```
-array([2., 2., 2., ..., 2., 2., 3.])
+
+
+
+
+    array([2., 2., 2., ..., 2., 2., 3.])
 
 
 
@@ -519,7 +538,7 @@ new_dataset.close()
 
 ```python
 from matplotlib.colors import ListedColormap
-path = r'D:\UCAS\AI\Project\out\output_rfm.tif'
+path = r'output_rfm.tif'
 src  = rasterio.open(path,mode='r')
 array = src.read()[0]
 classes = ["water", "Agriculture", "Urban"]
@@ -568,6 +587,10 @@ disp.plot()
 
 
 
+    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1e3c867bb38>
+
+
+
 
     
 ![png](output_39_1.png)
@@ -609,7 +632,7 @@ new_dataset.close()
 
 ```python
 from matplotlib.colors import ListedColormap
-path = r'D:\UCAS\AI\Project\out\output_dtm.tif'
+path = r'output_dtm.tif'
 src  = rasterio.open(path,mode='r')
 array = src.read()[0]
 classes = ["water", "Agriculture", "Urban"]
