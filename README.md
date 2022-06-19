@@ -35,8 +35,6 @@ ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 
 
 
-    <AxesSubplot:>
-
 
 
 ### Raster source meatadata
@@ -70,19 +68,6 @@ row_per_pixel_df.head()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -202,19 +187,6 @@ training.head()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -323,19 +295,6 @@ sampled.head()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -503,13 +462,6 @@ disp.plot()
 ```
 
 
-
-
-    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1ffc2b87fd0>
-
-
-
-
     
 ![png](output_29_1.png)
     
@@ -537,11 +489,7 @@ print(classification_report(y_valid,y_hat))
 test_predictions = rfm.predict(test_set)
 test_predictions
 ```
-
-
-
-
-    array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
+array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
 
 
 
@@ -550,17 +498,13 @@ test_predictions
 test_predictions = test_predictions.astype('float64')
 test_predictions
 ```
-
-
-
-
-    array([2., 2., 2., ..., 2., 2., 3.])
+array([2., 2., 2., ..., 2., 2., 3.])
 
 
 
 
 ```python
-new_dataset = rasterio.open(r'D:\UCAS\AI\Project\out\output_rfm.tif',
+new_dataset = rasterio.open(r'output_rfm.tif',
             mode = 'w',
             driver=src.driver,
             height = src.shape[0],
@@ -624,10 +568,6 @@ disp.plot()
 
 
 
-    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1e3c867bb38>
-
-
-
 
     
 ![png](output_39_1.png)
@@ -654,7 +594,7 @@ test_predictions = test_predictions.astype('float64')
 
 
 ```python
-new_dataset = rasterio.open(r'D:\UCAS\AI\Project\out\output_dtm.tif',
+new_dataset = rasterio.open(r'output_dtm.tif',
             mode = 'w',
             driver=src.driver,
             height = src.shape[0],
