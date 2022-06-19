@@ -553,7 +553,7 @@ plt.show()
 
 
     
-![png](output_34_0.png)
+![png](output_36_0.png)
     
 
 
@@ -592,8 +592,7 @@ disp.plot()
 
 
 
-    
-![png](output_39_1.png)
+![png](output_41_1.png)
     
 
 
@@ -647,7 +646,7 @@ plt.show()
 
 
     
-![png](output_43_0.png)
+![png](output_48_0.png)
     
 
 
