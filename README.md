@@ -1,4 +1,4 @@
-# classification a satellite image-Sentinel-2- using machine learning algorithms -Random Forest and Decision Tree-
+# classification of a satellite image -Sentinel2- using machine learning algorithms -Random Forest and Decision Tree-
 # 1.Importing libraries
 
 
