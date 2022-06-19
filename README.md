@@ -1,0 +1,1 @@
+# classification-a-satellite-image--Sentinel-2--using-Random-Forest-algorithm
