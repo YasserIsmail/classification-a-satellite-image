@@ -28,7 +28,7 @@ ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 
 
     
-![png](images\output_4_0.png)
+![png](output_4_0.png)
     
 
 
