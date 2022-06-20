@@ -23,7 +23,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 
 ```python
-path = r'inputs\images\T31UDQ_20220326T104639_stacked_aoi.tif'
+path = r'inputs\T31UDQ_20220326T104639.tif'
 src  = rasterio.open(path,mode='r')
 ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 ```
@@ -33,11 +33,6 @@ ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 ![png](output_4_0.png)
     
 
-
-
-
-
-    <AxesSubplot:>
 
 
 
@@ -266,7 +261,7 @@ row_per_pixel_df.info()
     memory usage: 14.9 MB
     
 
-###### ```There are  no N/A Values```
+#### ```There are  no N/A Values```
 
 # 4.Create train,validation and test sets
 
@@ -284,6 +279,8 @@ test_set = row_per_pixel_df.copy()
 def sampling_data(gdf,src):
     name   = gdf.geometry.name
     coords = [(x,y) for x,y in zip(gdf[name].x , gdf[name].y)]
+    bands = src.count
+    columns = [f'band_{n}' for n in range(1,bands+1)]
     values = pd.DataFrame([val for val in src.sample(coords)],columns=columns)
     output = gdf.join(values,how='left',lsuffix='_gdf',rsuffix='_src')
     return output
@@ -450,11 +447,6 @@ rfm.fit(X_train,y_train)
 
 
 
-
-    RandomForestClassifier(random_state=1)
-
-
-
 #### ```Performance measure```
 
 
@@ -464,13 +456,6 @@ conf_matrix = confusion_matrix(y_valid,y_hat,labels=rfm.classes_)
 disp = ConfusionMatrixDisplay(conf_matrix)
 disp.plot()
 ```
-
-
-
-
-    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1ffc2b87fd0>
-
-
 
 
     
@@ -495,47 +480,28 @@ print(classification_report(y_valid,y_hat))
     
     
 
+#### ```Classes prediction ```
 
 ```python
 test_predictions = rfm.predict(test_set)
-test_predictions
 ```
 
 
-
-
-    array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
-
-
-
+#### ```Write a new raster -GeoTiff file-  ```
 
 ```python
 test_predictions = test_predictions.astype('float64')
-test_predictions
-```
-
-
-
-
-    array([2., 2., 2., ..., 2., 2., 3.])
-
-
-
-
-```python
 new_dataset = rasterio.open(r'output_rfm.tif',
             mode = 'w',
-            driver=src.driver,
-            height = src.shape[0],
-            width = src.shape[1],
+            driver=driver,
+            height = rows,
+            width = cols,
             count=1, dtype='float64',
-            crs=src.crs,
-            transform=src.transform)
+            crs=projection,
+            transform=geo_transform)
 new_dataset.write(test_predictions.reshape((rows,cols)), 1)
 new_dataset.close()
 ```
-
-
 ```python
 from matplotlib.colors import ListedColormap
 path = r'output_rfm.tif'
@@ -570,9 +536,6 @@ dtm.fit(X_train,y_train)
 
 
 
-    DecisionTreeClassifier(max_depth=2, random_state=1)
-
-
 
 #### ```Performance measure```
 
@@ -587,43 +550,30 @@ disp.plot()
 
 
 
-    <sklearn.metrics._plot.confusion_matrix.ConfusionMatrixDisplay at 0x1e3c867bb38>
-
-
 
 
 ![png](output_41_1.png)
     
 
 
+#### ```Classes prediction ```
 
 ```python
 test_predictions = dtm.predict(test_set)
-test_predictions
 ```
 
 
-
-
-    array([2, 2, 2, ..., 2, 2, 3], dtype=int64)
-
-
-
-
+#### ```Write a new raster -GeoTiff file-  ```
 ```python
 test_predictions = test_predictions.astype('float64')
-```
-
-
-```python
 new_dataset = rasterio.open(r'output_dtm.tif',
             mode = 'w',
-            driver=src.driver,
-            height = src.shape[0],
-            width = src.shape[1],
+            driver=driver,
+            height = rows,
+            width = cols,
             count=1, dtype='float64',
-            crs=src.crs,
-            transform=src.transform)
+            crs=projection,
+            transform=geo_transform)
 new_dataset.write(test_predictions.reshape((rows,cols)), 1)
 new_dataset.close()
 ```
