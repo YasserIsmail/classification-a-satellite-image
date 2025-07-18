@@ -1,3 +1,4 @@
+
 # 🛰️ Satellite Image Classification Using Machine Learning
 
 This project performs **land cover classification** on Sentinel-2 satellite imagery using **Random Forest** and **Decision Tree** classifiers. The process includes data preparation, training, model evaluation, and classification map generation.
@@ -157,7 +158,6 @@ plt.show()
 Geospatial Engineer  
 📧 [yasserism2020@gmail.com](mailto:yasserism2020@gmail.com)  
 💬 WhatsApp: [+972567793729](https://wa.me/972567793729)  
-📍 Gaza, Palestine  
 🌐 GitHub: [github.com/yasser-barhoom](https://github.com/yasser-barhoom)
 
 ---
