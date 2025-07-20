@@ -1,50 +1,17 @@
+# 🛰️ Land Use Classification of Sentinel-2 Imagery Using Machine Learning
 
-# 🛰️ Satellite Image Classification Using Machine Learning
+This project demonstrates a complete workflow for land cover classification using Sentinel-2 satellite imagery and machine learning algorithms, specifically **Random Forest** and **Decision Tree** classifiers.
 
-This project performs **land cover classification** on Sentinel-2 satellite imagery using **Random Forest** and **Decision Tree** classifiers. The process includes data preparation, training, model evaluation, and classification map generation.
+We classify the land into three classes:
+- **Water**
+- **Agriculture**
+- **Urban**
 
----
-
-## 📌 Table of Contents
-
-1. [Project Overview](#-project-overview)  
-2. [Technologies Used](#-technologies-used)  
-3. [Data Preparation](#-data-preparation)  
-4. [Model Training](#-model-training)  
-5. [Model Evaluation](#-model-evaluation)  
-6. [Output Classification Maps](#-output-classification-maps)  
-7. [Author](#-author)
+The process includes reading satellite data, feature extraction, training classification models, and generating prediction maps.
 
 ---
 
-## 🌍 Project Overview
-
-This project demonstrates the full workflow of supervised image classification using:
-
-- **Sentinel-2 raster imagery**
-- **Labeled training data (shapefile)**
-- **Random Forest** and **Decision Tree** machine learning models
-
-It automates:
-
-- Extracting spectral data from training points
-- Training and validating models
-- Applying predictions over the entire raster
-- Generating output classified maps in GeoTIFF format
-
----
-
-## 🧰 Technologies Used
-
-- **Python**
-- `rasterio`, `geopandas`, `pandas`, `matplotlib`, `earthpy`, `scikit-learn`
-- Machine Learning: `RandomForestClassifier`, `DecisionTreeClassifier`
-
----
-
-## 🗂️ Data Preparation
-
-### ✅ Import Libraries
+## 📦 1. Import Libraries
 
 ```python
 import geopandas as gpd
@@ -55,109 +22,227 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix,ConfusionMatrixDisplay,classification_report
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
-```
-
-### ✅ Load and Display Raster
-
-```python
-src = rasterio.open('inputs/T31UDQ_20220326T104639.tif')
-ep.plot_rgb(arr=src.read(), rgb=(3,2,1), figsize=(5, 5))
-```
-
-![RGB Raster](output_4_0.png)
+````
 
 ---
 
-## 🧪 Training & Validation
+## 🌐 2. Load and Explore Data
 
-### ✅ Load and Sample Training Data
+### 🛰️ Raster Source
 
 ```python
-training = gpd.read_file('inputs/training_data/data.shp')
+path = r'inputs\T31UDQ_20220326T104639.tif'
+src  = rasterio.open(path,mode='r')
+ep.plot_rgb(arr=src.read(),rgb=(3,2,1),figsize =(5, 5))
 ```
 
-### ✅ Sample Raster Pixels at Training Locations
+![Satellite RGB](output_4_0.png)
+
+### 📝 Raster Metadata
 
 ```python
-def sampling_data(gdf, src):
-    coords = [(x, y) for x, y in zip(gdf.geometry.x, gdf.geometry.y)]
-    values = pd.DataFrame([val for val in src.sample(coords)], 
-                          columns=[f'band_{i+1}' for i in range(src.count)])
-    return gdf.join(values)
+driver= src.driver
+rows  = src.height
+cols  = src.width
+bands = src.count
+geo_transform = src.transform
+projection = src.crs
+```
+
+### 📊 Convert Raster to DataFrame
+
+```python
+src_array = src.read()
+```
+
+```python
+row_per_pixel = src_array.reshape([bands,-1]).T
+columns = [f'band_{n}' for n in range(1,bands+1)]
+row_per_pixel_df  = pd.DataFrame(row_per_pixel,columns=columns)
+row_per_pixel_df.head()
+```
+
+### 📌 Training Data (Ground Truth Points)
+
+```python
+path = r'inputs\training_data\data.shp'
+training = gpd.read_file(path)
+training.head()
 ```
 
 ---
 
-## 🧠 Model Training
-
-### ✅ Random Forest
+## 🔍 3. Explore the Data
 
 ```python
-rfm = RandomForestClassifier(n_estimators=100, random_state=1)
-rfm.fit(X_train, y_train)
+row_per_pixel_df.info()
 ```
 
-### ✅ Decision Tree
+> There are no N/A values.
+
+---
+
+## 🧪 4. Create Datasets
+
+### Create Test Set
 
 ```python
-dtm = DecisionTreeClassifier(max_depth=2, random_state=1)
-dtm.fit(X_train, y_train)
+test_set = row_per_pixel_df.copy()
+```
+
+### Sample Training Data from Raster
+
+```python
+def sampling_data(gdf,src):
+    name   = gdf.geometry.name
+    coords = [(x,y) for x,y in zip(gdf[name].x , gdf[name].y)]
+    bands = src.count
+    columns = [f'band_{n}' for n in range(1,bands+1)]
+    values = pd.DataFrame([val for val in src.sample(coords)],columns=columns)
+    output = gdf.join(values,how='left',lsuffix='_gdf',rsuffix='_src')
+    return output
+```
+
+```python
+sampled = sampling_data(training,src)
+sampled.head()
+```
+
+### Split into Train and Validation Sets
+
+```python
+X = sampled.drop(['mc_id','mc_info','geometry'],axis=1)
+y = sampled['mc_id']
+```
+
+```python
+X_train, X_valid, y_train, y_valid = train_test_split(X,y,test_size=0.3,random_state=1)
 ```
 
 ---
 
-## 📊 Model Evaluation
+## 🌲 5. Random Forest Classifier
 
-### ✅ Random Forest Evaluation
-
-```python
-y_pred = rfm.predict(X_valid)
-print(classification_report(y_valid, y_pred))
-ConfusionMatrixDisplay(confusion_matrix(y_valid, y_pred)).plot()
-```
-
-![Confusion Matrix - RF](output_29_1.png)
-
-### ✅ Decision Tree Evaluation
+### Train the Model
 
 ```python
-y_pred = dtm.predict(X_valid)
-ConfusionMatrixDisplay(confusion_matrix(y_valid, y_pred)).plot()
+rfm = RandomForestClassifier(n_estimators=100,random_state=1)
+rfm.fit(X_train,y_train)
 ```
 
-![Confusion Matrix - DT](output_41_1.png)
+### Evaluate Model
 
----
+```python
+y_hat = rfm.predict(X_valid)
+conf_matrix = confusion_matrix(y_valid,y_hat,labels=rfm.classes_)
+disp = ConfusionMatrixDisplay(conf_matrix)
+disp.plot()
+```
 
-## 🗺️ Output Classification Maps
+![Random Forest Confusion Matrix](output_29_1.png)
 
-### ✅ Visualize Final Classified Raster (Random Forest)
+```python
+print(classification_report(y_valid,y_hat))
+```
+
+### Predict Classes and Save Raster
+
+```python
+test_predictions = rfm.predict(test_set)
+test_predictions = test_predictions.astype('float64')
+new_dataset = rasterio.open(r'output_rfm.tif',
+            mode = 'w',
+            driver=driver,
+            height = rows,
+            width = cols,
+            count=1, dtype='float64',
+            crs=projection,
+            transform=geo_transform)
+new_dataset.write(test_predictions.reshape((rows,cols)), 1)
+new_dataset.close()
+```
+
+### Visualize Classification Map
 
 ```python
 from matplotlib.colors import ListedColormap
-
-classes = ["Water", "Agriculture", "Urban"]
-colors = ListedColormap(['#3BA0FD', '#33A02C', '#535353'])
-
-f, ax = plt.subplots(figsize=(10, 5))
-im = ax.imshow(predicted_raster, cmap=colors)
-ep.draw_legend(im, titles=classes)
+path = r'output_rfm.tif'
+src  = rasterio.open(path,mode='r')
+array = src.read()[0]
+classes = ["water", "Agriculture", "Urban"]
+colors  = ListedColormap(['#3BA0FD','#33A02C','#535353'])
+f, ax = plt.subplots(figsize=(10,5))
+im = ax.imshow(array, cmap = colors)
+ep.draw_legend(im, titles = classes)
 ax.set_axis_off()
 plt.show()
 ```
 
-![Classified Map](output_36_0.png)
+![Random Forest Map](output_36_0.png)
+
+---
+
+## 🌳 6. Decision Tree Classifier
+
+### Train the Model
+
+```python
+dtm = DecisionTreeClassifier(max_depth=2,random_state=1)
+dtm.fit(X_train,y_train)
+```
+
+### Evaluate Model
+
+```python
+y_hat = dtm.predict(X_valid)
+conf_matrix = confusion_matrix(y_valid,y_hat,labels=dtm.classes_)
+disp = ConfusionMatrixDisplay(conf_matrix)
+disp.plot()
+```
+
+![Decision Tree Confusion Matrix](output_41_1.png)
+
+### Predict and Save Raster
+
+```python
+test_predictions = dtm.predict(test_set)
+test_predictions = test_predictions.astype('float64')
+new_dataset = rasterio.open(r'output_dtm.tif',
+            mode = 'w',
+            driver=driver,
+            height = rows,
+            width = cols,
+            count=1, dtype='float64',
+            crs=projection,
+            transform=geo_transform)
+new_dataset.write(test_predictions.reshape((rows,cols)), 1)
+new_dataset.close()
+```
+
+### Visualize Map
+
+```python
+from matplotlib.colors import ListedColormap
+path = r'output_dtm.tif'
+src  = rasterio.open(path,mode='r')
+array = src.read()[0]
+classes = ["water", "Agriculture", "Urban"]
+colors  = ListedColormap(['#3BA0FD','#33A02C','#535353'])
+f, ax = plt.subplots(figsize=(10,5))
+im = ax.imshow(array, cmap = colors)
+ep.draw_legend(im, titles = classes)
+ax.set_axis_off()
+plt.show()
+```
+
+![Decision Tree Map](output_48_0.png)
 
 ---
 
 ## 👨‍💻 Author
 
-**Yasser Ismail Barhoom**  
-Geospatial Engineer  
-📧 [yasserism2020@gmail.com](mailto:yasserism2020@gmail.com)  
-💬 WhatsApp: [+972567793729](https://wa.me/972567793729)  
-🌐 GitHub: [github.com/yasser-barhoom](https://github.com/yasser-barhoom)
+**Yasser Ismail**
 
 ---
