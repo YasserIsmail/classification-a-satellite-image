@@ -241,8 +241,6 @@ plt.show()
 
 ---
 
-## 👨‍💻 Author
-
-**Yasser Ismail**
-
----
+### 👨‍💻 **Author**
+- **Yasser I. Barhoom**
+- **Geospatial Engineer**
